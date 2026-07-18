@@ -39,8 +39,8 @@
 
 ```bash
 # 1. Clone repo
-git clone https://github.com/saintzee-master/ZEE-SCRAP.git
-cd ZEE-SCRAP
+git clone https://github.com/saintzee-master/scrapbyzee.git
+cd scrapbyzee
 
 # 2. Install dependency
 npm install
@@ -197,7 +197,7 @@ print(data["photoUrls"], data["videos"])
 ## ☁️ Deploy ke Railway
 
 1. Login ke **[railway.com](https://railway.com)** dengan GitHub (tanpa kartu kredit).
-2. **New Project → Deploy from GitHub repo →** pilih `saintzee-master/ZEE-SCRAP`.
+2. **New Project → Deploy from GitHub repo →** pilih `saintzee-master/scrapbyzee`.
 3. Tambah Environment Variable: `PUPPETEER_SKIP_DOWNLOAD = true` (melewati unduhan Chromium yang berat).
 4. **Settings → Networking → Generate Domain** untuk mendapat URL publik.
 5. Selesai! Akses: `https://<nama>.up.railway.app/api/scrape?url=...`
