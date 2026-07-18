@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>zscrap — Web Scraper API</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg-2: #0e1428;
+      --surface: rgba(255,255,255,0.04);
+      --surface-2: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.09);
+      --text: #e8ecf7;
+      --muted: #8b95b5;
+      --accent: #6ea8fe;
+      --accent-2: #a78bfa;
+      --accent-3: #34d399;
+      --danger: #fb7185;
+      --radius: 16px;
+      --shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 600px at 12% -8%, rgba(110,168,254,0.16), transparent 60%),
+        radial-gradient(900px 600px at 100% 0%, rgba(167,139,250,0.16), transparent 55%),
+        var(--bg);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 22px 80px; }
+
+    /* Header */
+    .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+    .logo-img { width: 46px; height: 46px; border-radius: 13px; box-shadow: 0 8px 24px rgba(110,168,254,0.35); display: block; }
+    h1 { font-size: 1.7rem; margin: 0; letter-spacing: -0.5px; font-weight: 800; }
+    .tagline { color: var(--muted); margin: 0 0 30px; font-size: 0.97rem; }
+
+    /* Glass card */
+    .card {
+      background: linear-gradient(180deg, var(--surface-2), var(--surface));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    label.field-label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+    .input-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .url-input {
+      flex: 1 1 340px; padding: 15px 18px; border-radius: 12px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.28); color: var(--text); font-size: 1rem; transition: 0.2s; outline: none;
+    }
+    .url-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(110,168,254,0.15); }
+    .btn {
+      padding: 15px 26px; border: 0; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 1rem;
+      color: #05122e; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 26px rgba(110,168,254,0.32); transition: transform 0.12s, filter 0.2s;
+    }
+    .btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .opts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .chip-toggle { position: relative; }
+    .chip-toggle input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+    .chip-toggle span {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px;
+      background: rgba(0,0,0,0.25); border: 1px solid var(--border); color: var(--muted);
+      font-size: 0.85rem; transition: 0.2s; user-select: none;
+    }
+    .chip-toggle span::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); opacity: 0.5; transition: 0.2s; }
+    .chip-toggle input:checked + span { color: var(--text); border-color: var(--accent); background: rgba(110,168,254,0.12); }
+    .chip-toggle input:checked + span::before { background: var(--accent-3); opacity: 1; box-shadow: 0 0 10px var(--accent-3); }
+
+    /* Result */
+    .result-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .result-title { font-size: 1.2rem; font-weight: 700; margin: 0 0 4px; }
+    .result-desc { color: var(--muted); margin: 0; font-size: 0.9rem; max-width: 640px; }
+    .fav { width: 22px; height: 22px; border-radius: 6px; vertical-align: middle; margin-right: 8px; }
+
+    .stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 4px; }
+    .stat {
+      display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-radius: 12px; min-width: 92px;
+      background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+    }
+    .stat b { font-size: 1.25rem; font-weight: 800; }
+    .stat small { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin: 22px 0 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .tab {
+      padding: 10px 16px; cursor: pointer; color: var(--muted); font-size: 0.9rem; font-weight: 600;
+      border-bottom: 2px solid transparent; transition: 0.2s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+    .panel { display: none; }
+    .panel.active { display: block; animation: fade 0.25s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* Photo grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .photo { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: rgba(0,0,0,0.3); aspect-ratio: 4/3; }
+    .photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; display: block; }
+    .photo:hover img { transform: scale(1.07); }
+    .photo a.open { position: absolute; inset: 0; }
+
+    /* Video list */
+    .vcard { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border); margin-bottom: 10px; }
+    .vbadge { font-size: 0.72rem; font-weight: 700; padding: 5px 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+    .vbadge.youtube { background: rgba(255,0,0,0.16); color: #ff8a8a; }
+    .vbadge.vimeo { background: rgba(26,183,234,0.16); color: #7fd8f5; }
+    .vbadge.other { background: rgba(167,139,250,0.16); color: #c4b5fd; }
+    .vinfo { min-width: 0; flex: 1; }
+    .vinfo .vtitle { font-weight: 600; margin-bottom: 3px; }
+    .vinfo a { color: var(--accent); text-decoration: none; font-size: 0.82rem; word-break: break-all; }
+    .vinfo a:hover { text-decoration: underline; }
+
+    /* Tags */
+    .tag { display: inline-block; padding: 6px 13px; margin: 0 7px 8px 0; border-radius: 8px; font-size: 0.82rem; background: rgba(0,0,0,0.25); border: 1px solid var(--border); color: var(--text); }
+
+    /* Links list */
+    .linkrow { padding: 9px 12px; border-radius: 9px; font-size: 0.82rem; border: 1px solid transparent; }
+    .linkrow:hover { background: rgba(0,0,0,0.25); border-color: var(--border); }
+    .linkrow a { color: var(--accent); text-decoration: none; word-break: break-all; }
+
+    pre { background: rgba(0,0,0,0.35); border: 1px solid var(--border); padding: 16px; border-radius: 12px; overflow: auto; max-height: 420px; font-size: 0.8rem; line-height: 1.5; margin: 0; }
+    .copy-btn { float: right; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    .empty { color: var(--muted); font-size: 0.9rem; padding: 20px 0; text-align: center; }
+    .loader { display: flex; align-items: center; gap: 12px; color: var(--muted); }
+    .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .alert { color: var(--danger); display: flex; align-items: center; gap: 10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <img class="logo-img" src="/favicon.svg" alt="zscrap logo" width="46" height="46" />
+      <div>
+        <h1>zscrap</h1>
+      </div>
+    </div>
+    <p class="tagline">Scraper API generik &amp; canggih — ambil foto, video embed, kategori &amp; metadata dari URL apa pun.</p>
+
+    <div class="card">
+      <label class="field-label" for="url">URL yang ingin di-scrape</label>
+      <div class="input-row">
+        <input class="url-input" type="text" id="url" placeholder="https://contoh.com" value="https://books.toscrape.com/" />
+        <button class="btn" id="go">Scrape Sekarang</button>
+      </div>
+      <div class="opts">
+        <label class="chip-toggle"><input type="checkbox" id="render" /><span>Render JavaScript</span></label>
+        <label class="chip-toggle"><input type="checkbox" id="robots" checked /><span>Hormati robots.txt</span></label>
+        <label class="chip-toggle"><input type="checkbox" id="insecure" /><span>Abaikan error SSL</span></label>
+        <label class="chip-toggle"><input type="checkbox" id="links" /><span>Sertakan link</span></label>
+      </div>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const btn = $('go');
+    btn.addEventListener('click', run);
+    $('url').addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
+
+    let lastData = null;
+
+    async function run() {
+      const url = $('url').value.trim();
+      const box = $('result');
+      if (!url) { box.innerHTML = card('<div class="alert">⚠️ URL wajib diisi.</div>'); return; }
+
+      btn.disabled = true; btn.textContent = 'Memproses…';
+      box.innerHTML = card('<div class="loader"><span class="spinner"></span> Mengambil &amp; memproses halaman…</div>');
+
+      const params = new URLSearchParams({
+        url, render: $('render').checked, robots: $('robots').checked,
+        insecure: $('insecure').checked, links: $('links').checked,
+      });
+
+      try {
+        const res = await fetch('/api/scrape?' + params.toString());
+        const data = await res.json();
+        if (!data.success) box.innerHTML = card('<div class="alert">❌ ' + esc(data.error || 'Gagal') + '</div>');
+        else { lastData = data; renderResult(data); }
+      } catch (e) {
+        box.innerHTML = card('<div class="alert">❌ ' + esc(e.message) + '</div>');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Scrape Sekarang';
+      }
+    }
+
+    const card = (inner) => '<div class="card">' + inner + '</div>';
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+    function renderResult(d) {
+      const m = d.metadata || {};
+      const fav = m.favicon ? '<img class="fav" src="' + esc(m.favicon) + '" alt="" onerror="this.style.display=\'none\'"/>' : '';
+
+      let html = '<div class="result-head"><div>';
+      html += '<div class="result-title">' + fav + esc(m.title || '(tanpa judul)') + '</div>';
+      if (m.description) html += '<p class="result-desc">' + esc(m.description) + '</p>';
+      html += '</div></div>';
+
+      html += '<div class="stats">' +
+        stat(d.counts.photos, 'Foto') +
+        stat(d.counts.videos, 'Video') +
+        stat(d.counts.categories, 'Kategori') +
+        (d.counts.links != null ? stat(d.counts.links, 'Link') : '') +
+        stat(d.elapsedMs + 'ms', 'Waktu') +
+        stat('HTTP ' + d.status, d.cached ? 'Cache' : 'Live') +
+      '</div>';
+
+      // Tabs
+      const tabs = [
+        ['photos', '🖼️ Foto (' + d.counts.photos + ')'],
+        ['videos', '🎬 Video (' + d.counts.videos + ')'],
+        ['cats', '🏷️ Kategori (' + d.counts.categories + ')'],
+      ];
+      if (d.links) tabs.push(['links', '🔗 Link (' + d.links.length + ')']);
+      tabs.push(['json', '{ } JSON']);
+
+      html += '<div class="tabs">' + tabs.map((t, i) =>
+        '<div class="tab' + (i === 0 ? ' active' : '') + '" data-tab="' + t[0] + '">' + t[1] + '</div>').join('') + '</div>';
+
+      html += panel('photos', true, photosView(d));
+      html += panel('videos', false, videosView(d));
+      html += panel('cats', false, catsView(d));
+      if (d.links) html += panel('links', false, linksView(d));
+      html += panel('json', false, jsonView(d));
+
+      $('result').innerHTML = card(html);
+      bindTabs();
+    }
+
+    const stat = (v, l) => '<div class="stat"><b>' + esc(v) + '</b><small>' + esc(l) + '</small></div>';
+    const panel = (id, active, inner) => '<div class="panel' + (active ? ' active' : '') + '" data-panel="' + id + '">' + inner + '</div>';
+
+    function photosView(d) {
+      if (!d.photos.length) return '<div class="empty">Tidak ada foto ditemukan.</div>';
+      let h = '<div class="grid">';
+      d.photos.forEach((p) => {
+        h += '<div class="photo"><img loading="lazy" src="' + esc(p.url) + '" alt="' + esc(p.alt || '') +
+          '" onerror="this.parentNode.style.display=\'none\'"/><a class="open" href="' + esc(p.url) + '" target="_blank" rel="noopener"></a></div>';
+      });
+      h += '</div>';
+      return h;
+    }
+
+    function videosView(d) {
+      if (!d.videos.length) return '<div class="empty">Tidak ada video ditemukan.</div>';
+      return d.videos.map((v) => {
+        const prov = (v.provider || 'other');
+        const cls = prov === 'youtube' ? 'youtube' : prov === 'vimeo' ? 'vimeo' : 'other';
+        return '<div class="vcard"><span class="vbadge ' + cls + '">' + esc(prov) + '</span>' +
+          '<div class="vinfo"><div class="vtitle">' + esc(v.title || v.type) + (v.id ? ' · ' + esc(v.id) : '') + '</div>' +
+          '<a href="' + esc(v.url) + '" target="_blank" rel="noopener">' + esc(v.url) + '</a></div></div>';
+      }).join('');
+    }
+
+    function catsView(d) {
+      const all = [...(d.categories || []), ...(d.keywords || [])];
+      let h = '';
+      if (d.breadcrumb && d.breadcrumb.length) h += '<p class="result-desc">Breadcrumb: ' + d.breadcrumb.map(esc).join(' › ') + '</p>';
+      if (!all.length) return h || '<div class="empty">Tidak ada kategori/tag ditemukan.</div>';
+      h += '<div>' + all.map((c) => '<span class="tag">' + esc(c) + '</span>').join('') + '</div>';
+      return h;
+    }
+
+    function linksView(d) {
+      if (!d.links || !d.links.length) return '<div class="empty">Tidak ada link.</div>';
+      return d.links.map((l) => '<div class="linkrow"><a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.text || l.url) + '</a></div>').join('');
+    }
+
+    function jsonView(d) {
+      return '<button class="copy-btn" onclick="copyJSON()">📋 Salin JSON</button><pre id="jsonpre">' + esc(JSON.stringify(d, null, 2)) + '</pre>';
+    }
+
+    window.copyJSON = () => { if (lastData) navigator.clipboard.writeText(JSON.stringify(lastData, null, 2)); };
+
+    function bindTabs() {
+      document.querySelectorAll('.tab').forEach((t) => {
+        t.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'));
+          document.querySelectorAll('.panel').forEach((x) => x.classList.remove('active'));
+          t.classList.add('active');
+          document.querySelector('.panel[data-panel="' + t.dataset.tab + '"]').classList.add('active');
+        });
+      });
+    }
+  </script>
+</body>
+</html>

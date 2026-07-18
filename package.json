@@ -1,0 +1,31 @@
+{
+  "name": "zscrap",
+  "version": "1.0.0",
+  "description": "API scraper generik untuk mengambil foto, video embed, kategori, dan metadata dari sebuah halaman web (scrape on-demand).",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "scraper",
+    "web-scraping",
+    "api",
+    "cheerio",
+    "puppeteer"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0"
+  },
+  "optionalDependencies": {
+    "puppeteer": "^23.5.0"
+  }
+}
